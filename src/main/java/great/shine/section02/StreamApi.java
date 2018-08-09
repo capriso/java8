@@ -3,6 +3,7 @@ package great.shine.section02;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -23,6 +24,9 @@ public class StreamApi {
 
         // stateful transformation
         statefulTransformation();
+
+        simpleReduction();
+        optaionalValueComposition();
     }
 
     private static void useStreamInsteadOfIteration() {
@@ -131,4 +135,63 @@ public class StreamApi {
 
         System.out.println();
     }
+
+    private static void simpleReduction() {
+        System.out.println("7. use Optional<T> for reduce operation");
+
+        String contents = "Java 8 is a revolutionary release of the world’s #1 development platform.";
+
+        // Stream from array
+        Stream<String> words = Stream.of(contents.split("[\\P{L}]+"));
+
+        // String result = null;
+        // for(String s : list) {
+        //   if(s.startsWith("J")) {
+        //       result = s;
+        //       break;
+        //   }
+        // }
+        //
+        // if(s != null) {
+        //   System.out.println(result);
+        // }
+        Optional<String> optionalValue = words.filter(s -> s.startsWith("J")).findAny();
+        optionalValue.ifPresent(System.out::println);
+
+        System.out.println();
+    }
+
+    private static void optaionalValueComposition() {
+        System.out.println("8. Optaional<T> Composition");
+
+        String contents = "Java 8 is a revolutionary release of the world’s #1 development platform.";
+
+        // Stream from array
+        Optional<Double> result = null;
+
+        result = Optional.of(-4.0)
+                .flatMap(StreamApi::inverse)
+                .flatMap(StreamApi::squareRoot);
+        System.out.println(result);
+
+        result = Optional.of(0.0)
+                .flatMap(StreamApi::inverse)
+                .flatMap(StreamApi::squareRoot);
+        System.out.println(result);
+
+        result = Optional.of(4.0)
+                .flatMap(StreamApi::inverse)
+                .flatMap(StreamApi::squareRoot);
+        System.out.println(result);
+    }
+
+    public static Optional<Double> inverse(Double x) {
+        return x == 0 ? Optional.empty() : Optional.of(1 / x);
+    }
+
+    public static Optional<Double> squareRoot(Double x) {
+        return x < 0 ? Optional.empty() : Optional.of(Math.sqrt(x));
+    }
+
+
 }
