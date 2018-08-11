@@ -1,10 +1,9 @@
 package great.shine.section02;
 
-import java.util.Arrays;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
+import java.util.function.Function;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
 public class StreamApi {
@@ -24,9 +23,16 @@ public class StreamApi {
 
         // stateful transformation
         statefulTransformation();
-
         simpleReduction();
         optaionalValueComposition();
+        reductionMethod();
+        collectResults();
+        collectResultToMap();
+        grouping();
+        partitioning();
+
+        primitiveTypeStreams();
+        parallelStreams();
     }
 
     private static void useStreamInsteadOfIteration() {
@@ -164,8 +170,6 @@ public class StreamApi {
     private static void optaionalValueComposition() {
         System.out.println("8. Optaional<T> Composition");
 
-        String contents = "Java 8 is a revolutionary release of the world’s #1 development platform.";
-
         // Stream from array
         Optional<Double> result = null;
 
@@ -183,6 +187,8 @@ public class StreamApi {
                 .flatMap(StreamApi::inverse)
                 .flatMap(StreamApi::squareRoot);
         System.out.println(result);
+
+        System.out.println();
     }
 
     public static Optional<Double> inverse(Double x) {
@@ -193,5 +199,115 @@ public class StreamApi {
         return x < 0 ? Optional.empty() : Optional.of(Math.sqrt(x));
     }
 
+    private static void reductionMethod() {
+        System.out.println("9. Reduction Method");
 
+        Stream<Integer> values = Stream.of(1, 2, 3, 4);
+        Integer sum = values.reduce(0, (x, y) -> x + y);
+        System.out.println(sum);
+
+        System.out.println();
+    }
+
+    private static void collectResults() {
+        System.out.println("10. Collect Results");
+
+        String contents = "Java 8 is a revolutionary release of the world’s #1 development platform.";
+
+        // Stream from array
+        Stream<String> words = Stream.of(contents.split("[\\P{L}]+"));
+
+        String result = words.collect(Collectors.joining(", "));
+        System.out.println(result);
+
+        System.out.println();
+    }
+
+    private static void collectResultToMap() {
+        System.out.println("11. Collect Results to Map");
+
+        Person[] person = new Person[3];
+        person[0] = new Person(1, "Michael");
+        person[1] = new Person(2, "Jason");
+        person[2] = new Person(3, "Shine");
+
+        Stream<Person> people1 = Stream.of(person);
+        Map<Integer, String> idToName = people1.collect(Collectors.toMap(Person::getId, Person::getName));
+        System.out.println(idToName);
+
+        // Function.identity()를 사용하면, 입력으로 들어온 값 그 자체를 넘겨준다.
+        Stream<Person> people2 = Stream.of(person);
+        Map<Integer, Person> idToPerson = people2.collect(Collectors.toMap(Person::getId, Function.identity()));
+        System.out.println(idToPerson);
+
+        System.out.println();
+    }
+
+    private static void grouping() {
+        System.out.println("12. Grouping");
+
+        Stream<Locale> locales1 = Stream.of(Locale.getAvailableLocales());
+        Map<String, List<Locale>> countryToLocales =
+                locales1.collect(
+                        Collectors.groupingBy(Locale::getCountry)
+                );
+        System.out.println(countryToLocales);
+
+        Stream<Locale> locales2 = Stream.of(Locale.getAvailableLocales());
+        Map<String, Long> countryToLocaleCounts =
+                locales2.collect(
+                        Collectors.groupingBy(Locale::getCountry, Collectors.counting())
+                );
+        System.out.println(countryToLocaleCounts);
+
+        System.out.println();
+    }
+
+    private static void partitioning() {
+        System.out.println("13. Partitioning");
+
+        Stream<Locale> locales = Stream.of(Locale.getAvailableLocales());
+        Map<Boolean, List<Locale>> englishAndOtherLocales =
+                locales.collect(
+                        Collectors.partitioningBy(l -> l.getLanguage().equals("en"))
+                );
+        System.out.println(englishAndOtherLocales);
+
+        System.out.println();
+    }
+
+    private static void primitiveTypeStreams() {
+        System.out.println("14. Primitive Type Streams");
+
+        // Wrapper Class를 사용할 이유가 없다면,
+        // 기본 타입 스트림을 활용하여 형변환에서 발생하는 비효율을 제거할 수 있다.
+
+        IntStream stream = IntStream.of(1, 2, 3, 4, 5);
+        IntStream zeroToNinetyNine = IntStream.range(0, 100);
+        IntStream zeroToHundred = IntStream.rangeClosed(0, 100);
+
+        System.out.println(String.format("%d %d %d", stream.sum(), zeroToNinetyNine.sum(), zeroToHundred.sum()));
+
+        String contents = "Java 8 is a revolutionary release of the world’s #1 development platform.";
+        Stream<String> words = Stream.of(contents.split("[\\P{L}]+"));
+        IntStream lengths = words.mapToInt(String::length);
+        System.out.println(lengths.max());
+
+        System.out.println();
+    }
+
+    private static void parallelStreams() {
+        System.out.println("15. Parallel Streams");
+
+        // Collection.parallelStream()을 제외하면 모든 스트림 연산은 기본으로 순차 스트림을 생성한다.
+        // parallel() method를 사용하면 순차 스트림을 병렬 스트림으로 변환하여,
+        // 모든 지연 처리 중간 스트림 연산을 병렬처리한다.
+        // 따라서 임의의 순서로 실행될 수 있으며,
+        // 멀티스레딩에 의해 예상치 못한 동작이 일어나지 않도록 코드를 잘 작성해야 한다는 점을 주의해야 한다.
+        String contents = "Java 8 is a revolutionary release of the world’s #1 development platform.";
+        Stream<String> words = Stream.of(contents.split("[\\P{L}]+")).parallel();
+        System.out.println(words.count());
+
+        System.out.println();
+    }
 }
